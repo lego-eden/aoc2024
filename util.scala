@@ -1,3 +1,5 @@
+import scala.reflect.ClassTag
+
 extension [A](a: A)
   def tap[U](f: A => U): A =
     f(a)
@@ -12,3 +14,7 @@ extension [A, CC[x] <: scala.collection.SeqOps[x, CC, CC[x]]](xs: CC[A])
 extension (s: String)
   def remove(index: Int): String =
     s.patch(index, Nil, 1)
+
+extension [A: ClassTag](arr: Array[A])
+  def remove(index: Int): Array[A] =
+    arr.patch(index, Nil, 1)
