@@ -8,13 +8,13 @@ trait Day:
   def partTwo(lines: IndexedSeq[String]): Long
 
   lazy val input: IndexedSeq[String] =
-    os.read.lines(os.pwd/toString/"input.txt")
-  
+    os.read.lines(os.pwd / toString / "input.txt")
+
   lazy val example: IndexedSeq[String] =
-    os.read.lines(os.pwd/toString/"example.txt")
+    os.read.lines(os.pwd / toString / "example.txt")
 
   override def toString: String = super.toString.takeWhile(_ != '$')
-  
+
 end Day
 
 @main def main(): Unit =
