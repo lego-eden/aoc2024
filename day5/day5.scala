@@ -1,4 +1,3 @@
-import scala.compiletime.ops.double
 object day5 extends Day:
 
   def parseInput(
@@ -7,7 +6,7 @@ object day5 extends Day:
     val (strRules, strUpdates) = lines.splitFirst("")
     val rules = strRules.map(
       _.splitFirst('|')
-        .map[[_] =>> Long]([t] => s => s.asInstanceOf[String].toLong)
+        .map(_.toLong)
     )
     val updates = strUpdates.map(_.split(",").map(_.toLong).toVector)
     (rules.toSet, updates)

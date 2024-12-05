@@ -1,4 +1,7 @@
 import scala.reflect.ClassTag
+import scala.compiletime.ops.boolean.*
+import scala.compiletime.ops.int.*
+import scala.compiletime.constValue
 
 extension [A](a: A)
   def tap[U](f: A => U): A =
@@ -39,3 +42,57 @@ extension [A: ClassTag](arr: Array[A])
     (init, tail.tail)
 
   def headAndTail: (A, Array[A]) = (arr.head, arr.tail)
+
+type Invariant[T]
+
+type Equal[A, B] = Invariant[A] match
+  case Invariant[B] => true
+  case _            => false
+
+type HasSingleType[Tup <: Tuple] <: Boolean = Tup match
+  case EmptyTuple => true
+  case x *: xs    => Equal[Tuple.Head[Tup], x] && HasSingleType[xs]
+
+type MapElem[Tup <: Tuple, Idx <: Int, New] = (Tup, Idx) match
+  case (x *: xs, 0) => New *: xs
+  case (x *: xs, _) => x *: MapElem[xs, Idx - 1, New]
+
+type ZipWithIndex[Tup <: Tuple] = ZipWithIndexHelper[Tup, 0]
+
+private type ZipWithIndexHelper[Tup <: Tuple, Idx] <: Tuple = Tup match
+  case EmptyTuple => EmptyTuple
+  case x *: xs    => (x, Idx) *: ZipWithIndexHelper[xs, S[Idx]]
+
+extension (t: Tuple)(using (HasSingleType[t.type] =:= true))
+  def map[B](f: Tuple.Head[t.type] => B): Tuple.Map[t.type, [_] =>> B] =
+    t.map[[_] =>> B]([_] => elem => f(elem.asInstanceOf[Tuple.Head[t.type]]))
+
+extension (t: Tuple)
+  def mapElem[B](
+      i: Int
+  )(
+      f: Tuple.Elem[t.type, i.type] => B
+  ): MapElem[t.type, i.type, B] =
+    type FTypeConstructor[T] = T match
+      case (_, i.type) => B
+      case (x, _)      => x
+
+    t.zipWithIndex
+      .map[FTypeConstructor](
+        [typ] => pair => pair match
+          case (elem, `i`) =>
+            f(elem.asInstanceOf[Tuple.Elem[t.type, i.type]])
+              .asInstanceOf[FTypeConstructor[typ]]
+          case (elem, _) => elem.asInstanceOf[FTypeConstructor[typ]]
+      )
+      .asInstanceOf[MapElem[t.type, i.type, B]]
+
+  def zipWithIndex: ZipWithIndex[t.type] =
+    def zipWithIndex(tup: Tuple, i: Int): ZipWithIndex[tup.type] =
+      (
+        (tup, i) match
+          case (EmptyTuple, _) => EmptyTuple
+          case (x *: xs, _)    => (x, i) *: zipWithIndex(xs, i + 1)
+      ).asInstanceOf[ZipWithIndex[tup.type]]
+
+    zipWithIndex(t, 0)
