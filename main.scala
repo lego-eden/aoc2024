@@ -18,8 +18,8 @@ trait Day:
 end Day
 
 @main def main(): Unit =
-  val day = day5
-  day.useExample = false
+  val day = day6
+  day.useExample = true
 
   println(s"Part one: ${day.partOne}")
   println(s"Part two: ${day.partTwo}")
