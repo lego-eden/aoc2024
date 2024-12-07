@@ -1,87 +1,61 @@
-import scala.util.Try
-import scala.util.Failure
-import scala.util.Success
 import scala.annotation.tailrec
+import scala.collection.mutable.Set as MutSet
 
 object day6 extends Day:
-  enum Tile:
-    case Empty, Obstacle
-    case Visited(dirs: Set[(Int, Int)])
+  type Dir = (Int, Int)
+  type Pos = (Int, Int)
+  extension (pos: Pos)
+    infix def +(other: Dir) = pos.zip(other).map(_ + _)
 
-  case class Grid(grid: Vector[Vector[Tile]], guardPos: (Int, Int), guardDir: (Int, Int), uniqueTiles: Int = 0):
+  case class Grid(obs: Set[Pos], isDefinedAt: Pos => Boolean):
+    def block(pos: Pos): Grid =
+      copy(obs + pos)
+
+  case class Guard(pos: Pos, dir: Dir)(using givenGrid: Grid):
+    val grid = givenGrid
+    lazy val nextPos: Pos = pos + dir
+    lazy val next: Guard = copy(nextPos)
+
+    lazy val walk: Set[Guard] =
+      @tailrec
+      def walk(guard: Guard, path: Set[Guard]): Set[Guard] =
+        if guard.grid.isDefinedAt(nextPos) then
+          val (vdir, hdir) = guard.dir
+          if grid.obs(nextPos) then
+            walk(guard.copy(dir = (hdir, -vdir)), path)
+          else
+            walk(guard.next, path + guard)
+        else
+          Set(guard)
+      
+      walk(this, Set.empty)
     
-    lazy val nextGuardPos = guardPos.zip(guardDir).map(_ + _)
-    
-    lazy val next: Grid =
-      val (nextRow, nextCol) = nextGuardPos
-      grid(nextRow)(nextCol) match
-        case Tile.Empty =>
-          setTile(nextRow, nextCol, Tile.Visited(Set(guardDir))).copy(uniqueTiles = uniqueTiles + 1)
-            .copy(guardPos = (nextRow, nextCol))
-        case Tile.Obstacle =>
-          val (hdir, vdir) = guardDir
-          setGuardDir(vdir, -hdir).next
-        case Tile.Visited(dirs) =>
-          setTile(nextRow, nextCol, Tile.Visited(dirs + guardDir))
-            .copy(guardPos = (nextRow, nextCol))
+    lazy val doesLoop: Boolean = ???
 
-    def setTile(row: Int, col: Int, tile: Tile): Grid =
-      copy(grid = grid.updated(row, grid(row).updated(col, tile)))
-
-    def setGuardDir(dir: (Int, Int)): Grid =
-      copy(guardDir = dir)
-    
-    @tailrec
-    final def walk: Grid =
-      Try(next) match
-        case Failure(_) => this
-        case Success(newGrid) => newGrid.walk
-
-    @tailrec
-    final def doesLoop: Boolean =
-      Try(next) match
-        case Failure(_) => false
-        case Success(newGrid) =>
-          val (nextRow, nextCol) = nextGuardPos
-          grid(nextRow)(nextCol) match
-            case Tile.Visited(dirs) if dirs(guardDir) => true
-            case _ => newGrid.doesLoop
-
-    lazy val placeObstacle: Option[Grid] =
-      val (nextRow, nextCol) = nextGuardPos
-      grid.lift(nextRow).flatMap(_.lift(nextCol)) match
-        case Some(Tile.Empty) => Some(setTile(nextRow, nextCol, Tile.Obstacle))
-        case _ => None
-  end Grid
-
-  def parseInput(lines: IndexedSeq[String]): Grid =
+  def parseInput(lines: IndexedSeq[String]): (Grid, Guard) =
+    val obstacles = MutSet.empty[(Int, Int)]
     var guardPos = (0, 0)
-    Grid(
-      lines.zipWithIndex.map: line =>
-        val row = line(1)
-        line(0).zipWithIndex.map:
-          case ('.', _) => Tile.Empty
-          case ('#', _) => Tile.Obstacle
-          case ('^', col) =>
-            guardPos = (row, col)
-            Tile.Visited(Set[(Int, Int)]((-1, 0)))
-        .toVector
-      .toVector,
-      guardPos,
-      (-1, 0),
-      1
-    )
+    lines.zipWithIndex.map: (line, row) =>
+      line.zipWithIndex.map:
+        case ('^', col) =>
+          guardPos = (row, col)
+        case ('#', col) =>
+          obstacles.add((row, col))
+        case _ =>
+
+    given grid: Grid =
+      Grid(
+        obstacles.toSet,
+        (row: Int, col: Int) => lines.isDefinedAt(row) && lines(0).isDefinedAt(col)
+      )
+
+    (grid, Guard(guardPos, (-1, 0)))
 
   override def partOne(lines: IndexedSeq[String]): Long =
-    parseInput(lines).walk.grid.map: line =>
-      line.count(_.isInstanceOf[Tile.Visited])
-    .sum
+    val (grid, guard) = parseInput(lines)
+    guard.walk.map(_.pos).size
 
   override def partTwo(lines: IndexedSeq[String]): Long =
-    var grid = parseInput(lines)
-    var possiblePlacements = 0
-    while Try{ grid = grid.next }.isSuccess do
-      grid.placeObstacle.foreach: g =>
-        if g.doesLoop then possiblePlacements += 1
-
-    possiblePlacements
+    val (grid, guard) = parseInput(lines)
+    given Grid = grid
+    0
