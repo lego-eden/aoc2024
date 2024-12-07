@@ -19,7 +19,7 @@ end Day
 
 @main def main(): Unit =
   val day = day6
-  day.useExample = true
+  day.useExample = false
 
   println(s"Part one: ${day.partOne}")
   println(s"Part two: ${day.partTwo}")
