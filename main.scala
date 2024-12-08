@@ -1,11 +1,11 @@
 trait Day:
   var useExample = false
 
-  def partOne: Long = partOne(if useExample then example else input)
-  def partTwo: Long = partTwo(if useExample then example else input)
+  def partOne: Long | BigInt = partOne(if useExample then example else input)
+  def partTwo: Long | BigInt = partTwo(if useExample then example else input)
 
-  def partOne(lines: IndexedSeq[String]): Long
-  def partTwo(lines: IndexedSeq[String]): Long
+  def partOne(lines: IndexedSeq[String]): Long | BigInt
+  def partTwo(lines: IndexedSeq[String]): Long | BigInt
 
   lazy val input: IndexedSeq[String] =
     os.read.lines(os.pwd / toString / "input.txt")
@@ -18,7 +18,7 @@ trait Day:
 end Day
 
 @main def main(): Unit =
-  val day = day6
+  val day = day7
   day.useExample = false
 
   println(s"Part one: ${day.partOne}")

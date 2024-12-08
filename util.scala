@@ -31,6 +31,12 @@ extension (s: String)
     val (init, tail) = s.splitAt(s.indexOf(elem))
     (init, tail.tail)
 
+  def splitFirst(reg: String): (String, String) =
+    reg.r.findFirstMatchIn(s) match
+      case Some(regMatch) =>
+        (s.take(regMatch.start), s.drop(regMatch.end))
+      case None => ("", s)
+
   def headAndTail: (Char, String) = (s.head, s.tail)
 
 extension [A: ClassTag](arr: Array[A])
