@@ -1,20 +1,21 @@
 object day7 extends Day:
 
-  def parseInput(lines: IndexedSeq[String]): IndexedSeq[(BigInt, Vector[BigInt])] =
-    lines.map(_.splitFirst(": ")
-      .mapElem(0)(BigInt.apply)
-      .mapElem(1): tail =>
-        tail.split(' ').map(BigInt.apply).toVector
+  def parseInput(lines: IndexedSeq[String]): IndexedSeq[(Long, Vector[Long])] =
+    lines.map(
+      _.splitFirst(": ")
+        .mapElem(0)(_.toLong)
+        .mapElem(1): tail =>
+          tail.split(' ').map(_.toLong).toVector
     )
 
-  type Op = (BigInt, BigInt) => BigInt
+  type Op = (Long, Long) => Long
 
   val part1Ops: Vector[Op] = Vector(_ + _, _ * _)
   val part2Ops: Vector[Op] =
-    part1Ops :+ ((i1, i2) => BigInt(s"$i1$i2"))
+    part1Ops :+ ((i1, i2) => s"$i1$i2".toLong)
 
-  def isValid(ops: Vector[Op])(expected: BigInt, line: Vector[BigInt]): Boolean =
-    def isValid(line: Vector[BigInt], acc: BigInt): Boolean =
+  def isValid(ops: Vector[Op])(expected: Long, line: Vector[Long]): Boolean =
+    def isValid(line: Vector[Long], acc: Long): Boolean =
       if expected == acc && line.isEmpty then true
       else if line.isEmpty then false
       else
@@ -24,12 +25,14 @@ object day7 extends Day:
 
     isValid(line.tail, line.head)
 
-  override def partOne(lines: IndexedSeq[String]): BigInt =
-    parseInput(lines).filter((expected, line) => isValid(part1Ops)(expected, line))
+  override def partOne(lines: IndexedSeq[String]): Long =
+    parseInput(lines)
+      .filter((expected, line) => isValid(part1Ops)(expected, line))
       .map(_(0))
       .sum
 
-  override def partTwo(lines: IndexedSeq[String]): BigInt =
-    parseInput(lines).filter((expected, line) => isValid(part2Ops)(expected, line))
+  override def partTwo(lines: IndexedSeq[String]): Long =
+    parseInput(lines)
+      .filter((expected, line) => isValid(part2Ops)(expected, line))
       .map(_(0))
       .sum

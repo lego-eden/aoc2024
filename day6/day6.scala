@@ -5,8 +5,7 @@ import scala.collection.parallel.CollectionConverters.ImmutableSetIsParallelizab
 object day6 extends Day:
   type Dir = (Int, Int)
   type Pos = (Int, Int)
-  extension (pos: Pos)
-    infix def +(other: Dir) = pos.zip(other).map(_ + _)
+  extension (pos: Pos) infix def +(other: Dir) = pos.zip(other).map(_ + _)
 
   case class Grid(obs: Set[Pos], isDefinedAt: Pos => Boolean):
     def block(pos: Pos): Grid =
@@ -15,34 +14,30 @@ object day6 extends Day:
   case class Guard(pos: Pos, dir: Dir)(using givenGrid: Grid):
     val grid = givenGrid
     lazy val nextPos: Pos = pos + dir
-    lazy val next: Guard = 
+    lazy val next: Guard =
       if grid.obs(nextPos) then
         val (vdir, hdir) = dir
         copy(dir = (hdir, -vdir))
-      else
-        copy(nextPos)
+      else copy(nextPos)
 
     lazy val walk: Set[Guard] =
       @tailrec
       def walk(guard: Guard, path: Set[Guard]): Set[Guard] =
         if guard.grid.isDefinedAt(guard.nextPos) then
           walk(guard.next, path + guard)
-        else
-          path + guard
-      
+        else path + guard
+
       walk(this, Set.empty)
-    
-    lazy val doesLoop: Boolean = 
+
+    lazy val doesLoop: Boolean =
       @tailrec
       def doesLoop(guard: Guard, path: Set[Guard]): Boolean =
-        if !guard.grid.isDefinedAt(guard.nextPos) then
-          false
-        else
-          if path(guard) then true
-          else doesLoop(guard.next, path + guard)
-      
+        if !guard.grid.isDefinedAt(guard.nextPos) then false
+        else if path(guard) then true
+        else doesLoop(guard.next, path + guard)
+
       doesLoop(this, Set.empty)
-        
+
   end Guard
 
   def parseInput(lines: IndexedSeq[String]): (Grid, Guard) =
@@ -72,7 +67,5 @@ object day6 extends Day:
     val (grid, guard) = parseInput(lines)
     guard.walk.par
       .map(g => grid.block(g.pos))
-      .filter(g =>
-        Guard(guard.pos, guard.dir)(using g).doesLoop
-      )
+      .filter(g => Guard(guard.pos, guard.dir)(using g).doesLoop)
       .size

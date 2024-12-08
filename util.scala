@@ -85,11 +85,13 @@ extension (t: Tuple)
 
     t.zipWithIndex
       .map[FTypeConstructor](
-        [typ] => pair => pair match
-          case (elem, `i`) =>
-            f(elem.asInstanceOf[Tuple.Elem[t.type, i.type]])
-              .asInstanceOf[FTypeConstructor[typ]]
-          case (elem, _) => elem.asInstanceOf[FTypeConstructor[typ]]
+        [typ] =>
+          pair =>
+            pair match
+              case (elem, `i`) =>
+                f(elem.asInstanceOf[Tuple.Elem[t.type, i.type]])
+                  .asInstanceOf[FTypeConstructor[typ]]
+              case (elem, _) => elem.asInstanceOf[FTypeConstructor[typ]]
       )
       .asInstanceOf[MapElem[t.type, i.type, B]]
 
