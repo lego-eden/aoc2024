@@ -40,11 +40,13 @@ object day4 extends Day:
   end partOne
 
   override def partTwo(lines: IndexedSeq[String]): Long =
-    lines.indices.map: row =>
-      lines(row).indices.filter: col =>
-        xCoords(row, col).forall: coords =>
-          Try(coords.map(lines(_)(_)).mkString.isMas)
-            .getOrElse(false)
-      .size
-    .sum
+    lines.indices
+      .map: row =>
+        lines(row).indices
+          .filter: col =>
+            xCoords(row, col).forall: coords =>
+              Try(coords.map(lines(_)(_)).mkString.isMas)
+                .getOrElse(false)
+          .size
+      .sum
   end partTwo

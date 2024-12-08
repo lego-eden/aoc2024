@@ -51,7 +51,7 @@ extension [A: ClassTag](arr: Array[A])
 
 type Invariant[T]
 
-type Equal[A, B] = Invariant[A] match
+type Equal[A, B] <: Boolean = Invariant[A] match
   case Invariant[B] => true
   case _            => false
 
@@ -73,6 +73,13 @@ extension (t: Tuple)(using (HasSingleType[t.type] =:= true))
   def map[B](f: Tuple.Head[t.type] => B): Tuple.Map[t.type, [_] =>> B] =
     t.map[[_] =>> B]([_] => elem => f(elem.asInstanceOf[Tuple.Head[t.type]]))
 
+extension (t: Tuple)(using
+    singleType: HasSingleType[t.type] =:= true,
+    num: Numeric[Tuple.Head[t.type]]
+)
+  def *(scalar: Tuple.Head[t.type]): t.type =
+    t.map(num.times(_, scalar)).asInstanceOf[t.type]
+
 extension (t: Tuple)
   def mapElem[B](
       i: Int
@@ -84,11 +91,14 @@ extension (t: Tuple)
       case (x, _)      => x
 
     t.zipWithIndex
-      .map[FTypeConstructor]([typ] => pair => pair match
-        case (elem, `i`) =>
-          f(elem.asInstanceOf[Tuple.Elem[t.type, i.type]])
-            .asInstanceOf[FTypeConstructor[typ]]
-        case (elem, _) => elem.asInstanceOf[FTypeConstructor[typ]]
+      .map[FTypeConstructor](
+        [typ] =>
+          pair =>
+            pair match
+              case (elem, `i`) =>
+                f(elem.asInstanceOf[Tuple.Elem[t.type, i.type]])
+                  .asInstanceOf[FTypeConstructor[typ]]
+              case (elem, _) => elem.asInstanceOf[FTypeConstructor[typ]]
       )
       .asInstanceOf[MapElem[t.type, i.type, B]]
 

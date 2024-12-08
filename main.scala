@@ -8,17 +8,17 @@ trait Day:
   def partTwo(lines: IndexedSeq[String]): Long | BigInt
 
   lazy val input: IndexedSeq[String] =
-    os.read.lines(os.pwd/toString/"input.txt")
+    os.read.lines(os.pwd / toString / "input.txt")
 
   lazy val example: IndexedSeq[String] =
-    os.read.lines(os.pwd/toString/"example.txt")
+    os.read.lines(os.pwd / toString / "example.txt")
 
   override def toString: String = super.toString.takeWhile(_ != '$')
 
 end Day
 
 @main def main(): Unit =
-  val day = day7
+  val day = day8
   day.useExample = false
 
   println(s"Part one: ${day.partOne}")
