@@ -1,5 +1,3 @@
-import scala.util.boundary
-
 object day7 extends Day:
 
   def parseInput(lines: IndexedSeq[String]): IndexedSeq[(BigInt, Vector[BigInt])] =
@@ -10,6 +8,7 @@ object day7 extends Day:
     )
 
   type Op = (BigInt, BigInt) => BigInt
+
   val part1Ops: Vector[Op] = Vector(_ + _, _ * _)
   val part2Ops: Vector[Op] =
     part1Ops :+ ((i1, i2) => BigInt(s"$i1$i2"))
@@ -20,7 +19,7 @@ object day7 extends Day:
       else if line.isEmpty then false
       else
         val helper: Op => Boolean =
-          f => isValid(line.tail, f(acc, line.head))
+          op => isValid(line.tail, op(acc, line.head))
         ops.exists(helper)
 
     isValid(line.tail, line.head)
