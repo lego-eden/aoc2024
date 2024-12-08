@@ -15,7 +15,9 @@ object day4 extends Day:
       for i <- 0 to 3 yield (row + drow * i, col + dcol * i)
     )
 
-  def isMas(s: String): Boolean = s.strip == "MAS" || s.strip == "SAM"
+  extension (s: String)
+    def isMas: Boolean = s.strip == "MAS" || s.strip == "SAM"
+
   def xCoords(row: Int, col: Int): Vector[IndexedSeq[(Int, Int)]] =
     Vector((-1 to 1).zip(-1 to 1), (-1 to 1).zip(1 to -1 by -1))
       .map(offsets => offsets.map(offset => (row + offset(0), col + offset(1))))
@@ -38,17 +40,11 @@ object day4 extends Day:
   end partOne
 
   override def partTwo(lines: IndexedSeq[String]): Long =
-    lines.indices
-      .map: row =>
-        lines(row).indices
-          .filter: col =>
-            xCoords(row, col).forall: coords =>
-              Try:
-                coords
-                  .map:
-                    case (r, c) => lines(r)(c)
-                  .mkString |> isMas
-              .getOrElse(false)
-          .size
-      .sum
+    lines.indices.map: row =>
+      lines(row).indices.filter: col =>
+        xCoords(row, col).forall: coords =>
+          Try(coords.map(lines(_)(_)).mkString.isMas)
+            .getOrElse(false)
+      .size
+    .sum
   end partTwo
