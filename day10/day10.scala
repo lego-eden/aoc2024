@@ -6,16 +6,12 @@ import scala.collection.parallel.CollectionConverters.*
 
 object day10 extends Day:
 
-  type Pos = (Int, Int, Int)
   type Point = (Int, Int)
   type Grid = Array[Array[Int]]
 
   extension (g: Grid)
     def apply(point: (Int, Int)): Option[Int] =
       g.lift(point(0)).flatMap(_.lift(point(1)))
-
-  extension (p: Pos)
-    inline def point: (Int, Int) = (p(0), p(1))
 
   extension (p: (Int, Int))
     def +(other: (Int, Int)): (Int, Int) =
