@@ -1,3 +1,5 @@
+import scala.collection.parallel.CollectionConverters.ImmutableSeqIsParallelizable
+
 object day7 extends Day:
 
   def parseInput(lines: IndexedSeq[String]): IndexedSeq[(Long, Vector[Long])] =
@@ -17,7 +19,7 @@ object day7 extends Day:
   def isValid(ops: Vector[Op])(expected: Long, line: Vector[Long]): Boolean =
     def isValid(line: Vector[Long], acc: Long): Boolean =
       if expected == acc && line.isEmpty then true
-      else if line.isEmpty then false
+      else if line.isEmpty || acc > expected then false
       else
         val helper: Op => Boolean =
           op => isValid(line.tail, op(acc, line.head))
@@ -32,7 +34,7 @@ object day7 extends Day:
       .sum
 
   override def partTwo(lines: IndexedSeq[String]): Long =
-    parseInput(lines)
+    parseInput(lines).par
       .filter((expected, line) => isValid(part2Ops)(expected, line))
       .map(_(0))
       .sum

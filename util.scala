@@ -12,6 +12,13 @@ extension [A](a: A)
 
   infix def |>[B](f: A => B): B = f(a)
 
+extension [A](a: => A)
+  def repeat(n: Int): Vector[A] = Vector.fill(n)(a)
+
+extension (i: Int)
+  def isEven: Boolean = i % 2 == 0
+  def isOdd: Boolean = !i.isEven
+
 extension [A, CC[x] <: scala.collection.SeqOps[x, CC, CC[x]]](xs: CC[A])
   def remove(index: Int): CC[A] =
     xs.patch(index, Nil, 1)
@@ -19,6 +26,10 @@ extension [A, CC[x] <: scala.collection.SeqOps[x, CC, CC[x]]](xs: CC[A])
   def splitFirst(elem: A): (CC[A], CC[A]) =
     val (init, tail) = xs.splitAt(xs.indexOf(elem))
     (init, tail.tail)
+  
+  def swap(i1: Int, i2: Int): CC[A] =
+    val tmp = xs(i1)
+    xs.updated(i1, xs(i2)).updated(i2, tmp)
 
 extension [A, CC[x] <: scala.collection.IterableOps[A, CC, CC[A]]](xs: CC[A])
   def headAndTail: (A, CC[A]) = (xs.head, xs.tail)
@@ -35,9 +46,13 @@ extension (s: String)
     reg.r.findFirstMatchIn(s) match
       case Some(regMatch) =>
         (s.take(regMatch.start), s.drop(regMatch.end))
-      case None => ("", s)
+      case None => (s, "")
 
   def headAndTail: (Char, String) = (s.head, s.tail)
+
+  def swap(i1: Int, i2: Int): String =
+    val tmp = s(i1)
+    s.updated(i1, s(i2)).updated(i2, tmp)
 
 extension [A: ClassTag](arr: Array[A])
   def remove(index: Int): Array[A] =
@@ -49,15 +64,18 @@ extension [A: ClassTag](arr: Array[A])
 
   def headAndTail: (A, Array[A]) = (arr.head, arr.tail)
 
-type Invariant[T]
+final class Invariant[T]
 
 type Equal[A, B] <: Boolean = Invariant[A] match
   case Invariant[B] => true
   case _            => false
 
-type HasSingleType[Tup <: Tuple] <: Boolean = Tup match
+type HasSingleType[Tup <: Tuple] =
+  HasSingleTypeHelper[Tup, Tuple.Head[Tup]]
+
+private type HasSingleTypeHelper[Tup <: Tuple, T] <: Boolean = Tup match
   case EmptyTuple => true
-  case x *: xs    => Equal[Tuple.Head[Tup], x] && HasSingleType[xs]
+  case x *: xs => Equal[T, x] && HasSingleTypeHelper[xs, T]
 
 type MapElem[Tup <: Tuple, Idx <: Int, New] = (Tup, Idx) match
   case (x *: xs, 0) => New *: xs
@@ -68,6 +86,10 @@ type ZipWithIndex[Tup <: Tuple] = ZipWithIndexHelper[Tup, 0]
 private type ZipWithIndexHelper[Tup <: Tuple, Idx] <: Tuple = Tup match
   case EmptyTuple => EmptyTuple
   case x *: xs    => (x, Idx) *: ZipWithIndexHelper[xs, S[Idx]]
+
+type Fill[Size <: Int, Elem] <: Tuple = Size match
+  case 0 => EmptyTuple
+  case _ => Elem *: Fill[Size - 1, Elem]
 
 extension (t: Tuple)(using (HasSingleType[t.type] =:= true))
   def map[B](f: Tuple.Head[t.type] => B): Tuple.Map[t.type, [_] =>> B] =
@@ -111,3 +133,5 @@ extension (t: Tuple)
       ).asInstanceOf[ZipWithIndex[tup.type]]
 
     zipWithIndex(t, 0)
+
+end extension
