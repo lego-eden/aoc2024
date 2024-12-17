@@ -33,7 +33,6 @@ object day12 extends Day:
         region(pos)
           .map(plot =>
             if plot.sides(dir) then
-              // plot.adjacent(dir).flatMap(p => side(p, dir, seen + pos)) + plot.pos
               plot
                 .adjacent(dir)
                 .filterNot(seen.apply)
