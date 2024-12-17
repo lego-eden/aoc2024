@@ -13,10 +13,6 @@ object day10 extends Day:
     def apply(point: (Int, Int)): Option[Int] =
       g.lift(point(0)).flatMap(_.lift(point(1)))
 
-  extension (p: (Int, Int))
-    def +(other: (Int, Int)): (Int, Int) =
-      (p(0) + other(0), p(1) + other(1))
-
   extension (grid: Grid)
     def connected9s(point: Point): Vector[Point] =
       if grid(point).map(_ == 9).getOrElse(false) then Vector(point)
@@ -36,13 +32,15 @@ object day10 extends Day:
   def parseInput(lines: IndexedSeq[String]): (Grid, Vector[Point]) =
     var trailHeads = Buffer.empty[Point]
     (
-      lines.zipWithIndex.map: (line, row) =>
-        line.zipWithIndex.map: (c, col) =>
-          val digit = Try(c.asDigit).getOrElse(-1)
-          if digit == 0 then trailHeads += ((row, col))
-          digit
-        .toArray
-      .toArray,
+      lines.zipWithIndex
+        .map: (line, row) =>
+          line.zipWithIndex
+            .map: (c, col) =>
+              val digit = Try(c.asDigit).getOrElse(-1)
+              if digit == 0 then trailHeads += ((row, col))
+              digit
+            .toArray
+        .toArray,
       trailHeads.toVector
     )
 

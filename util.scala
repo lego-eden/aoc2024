@@ -4,16 +4,15 @@ import scala.compiletime.ops.int.*
 import scala.compiletime.constValue
 
 extension [A](a: A)
-  def tap[U](f: A => U): A =
+  inline def tap[U](f: A => U): A =
     f(a)
     a
 
-  def log(): A = a.tap(println)
+  inline def log(): A = a.tap(println)
 
-  infix def |>[B](f: A => B): B = f(a)
+  inline infix def |>[B](f: A => B): B = f(a)
 
-extension [A](a: => A)
-  def repeat(n: Int): Vector[A] = Vector.fill(n)(a)
+extension [A](a: => A) def repeat(n: Int): Vector[A] = Vector.fill(n)(a)
 
 extension (i: Int)
   def isEven: Boolean = i % 2 == 0
@@ -26,7 +25,7 @@ extension [A, CC[x] <: scala.collection.SeqOps[x, CC, CC[x]]](xs: CC[A])
   def splitFirst(elem: A): (CC[A], CC[A]) =
     val (init, tail) = xs.splitAt(xs.indexOf(elem))
     (init, tail.tail)
-  
+
   def swap(i1: Int, i2: Int): CC[A] =
     val tmp = xs(i1)
     xs.updated(i1, xs(i2)).updated(i2, tmp)
@@ -64,6 +63,10 @@ extension [A: ClassTag](arr: Array[A])
 
   def headAndTail: (A, Array[A]) = (arr.head, arr.tail)
 
+extension (p: (Int, Int))
+  def +(other: (Int, Int)): (Int, Int) =
+    (p(0) + other(0), p(1) + other(1))
+
 final class Invariant[T]
 
 type Equal[A, B] <: Boolean = Invariant[A] match
@@ -75,7 +78,7 @@ type HasSingleType[Tup <: Tuple] =
 
 private type HasSingleTypeHelper[Tup <: Tuple, T] <: Boolean = Tup match
   case EmptyTuple => true
-  case x *: xs => Equal[T, x] && HasSingleTypeHelper[xs, T]
+  case x *: xs    => Equal[T, x] && HasSingleTypeHelper[xs, T]
 
 type MapElem[Tup <: Tuple, Idx <: Int, New] = (Tup, Idx) match
   case (x *: xs, 0) => New *: xs
