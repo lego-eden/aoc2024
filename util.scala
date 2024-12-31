@@ -95,6 +95,9 @@ extension [T: Integral as num](p: (T, T))
   def %(other: (T, T)): (T, T) =
     (p(0) % other(0), p(1) % other(1))
   
+  def /(scalar: T): (T, T) =
+    (p(0) / scalar, p(1) / scalar)
+
   infix def gcd(other: (T, T)): (T, T) =
     (p(0) gcd other(0), p(1) gcd other(1))
 
